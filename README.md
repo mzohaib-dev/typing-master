@@ -12,3 +12,5 @@ Typing Master is a minimalist typing speed game built with React. It allows user
 - **Auto-Focus**: Input field automatically focuses on click or keypress.
 
 ## Demo
+
+https://speedkeys.netlify.app/
