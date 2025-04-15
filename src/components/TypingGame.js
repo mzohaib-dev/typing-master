@@ -40,9 +40,13 @@ const TypingGame = () => {
 
   const maxTime = 60;
 
-  const loadParagraph = () => {
+  const handleParagraph = () => {
     const randomIndex = Math.floor(Math.random() * paraArray.length);
-    const newText = paraArray[randomIndex].split("");
+    const newText = paraArray[randomIndex].split("").map((char) => ({
+      char,
+      correct: false,
+      incorrect: false,
+    }));
     setText(newText);
     setCharIndex(0);
     setErrors(0);
@@ -57,7 +61,7 @@ const TypingGame = () => {
     }
   };
 
-  const handleTyping = (e) => {
+  const startTyping = (e) => {
     if (charIndex < text.length && timeLeft > 0) {
       if (!isTyping) {
         timerRef.current = setInterval(() => {
@@ -89,25 +93,28 @@ const TypingGame = () => {
           );
         }
       } else {
-        if (text[charIndex] === typedChar) {
+        if (text[charIndex].char === typedChar) {
           setCorrects((prev) => prev + 1);
           setText((prev) =>
             prev.map((char, i) =>
-              i === charIndex ? { ...char, correct: true } : char
+              i === charIndex
+                ? { ...char, correct: true, incorrect: false }
+                : char
             )
           );
         } else {
           setErrors((prev) => prev + 1);
           setText((prev) =>
             prev.map((char, i) =>
-              i === charIndex ? { ...char, incorrect: true } : char
+              i === charIndex
+                ? { ...char, correct: false, incorrect: true }
+                : char
             )
           );
         }
         setCharIndex((prev) => prev + 1);
       }
 
-      // Calculate WPM and CPM
       const newWpm = Math.round(
         ((charIndex - errors) / 5 / (maxTime - timeLeft)) * 60
       );
@@ -123,15 +130,17 @@ const TypingGame = () => {
 
   const resetGame = () => {
     clearInterval(timerRef.current);
-    loadParagraph();
+    handleParagraph();
   };
 
   useEffect(() => {
-    loadParagraph();
-    const handleClick = () => inputRef.current.focus();
-    document.addEventListener("keydown", handleClick);
+    handleParagraph();
+    const handleFocus = () => inputRef.current.focus();
+    document.addEventListener("click", handleFocus);
+    document.addEventListener("keydown", handleFocus);
     return () => {
-      document.removeEventListener("keydown", handleClick);
+      document.removeEventListener("click", handleFocus);
+      document.removeEventListener("keydown", handleFocus);
       clearInterval(timerRef.current);
     };
   }, []);
@@ -145,10 +154,10 @@ const TypingGame = () => {
           type="text"
           className="input-box"
           autoFocus
-          onChange={handleTyping}
+          onChange={startTyping}
           onKeyDown={(e) => {
             if (e.key === "Backspace") {
-              handleTyping({ ...e, inputType: "deleteContentBackward" });
+              startTyping({ ...e, inputType: "deleteContentBackward" });
             }
           }}
         />
